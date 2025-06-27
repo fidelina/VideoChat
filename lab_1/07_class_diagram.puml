@@ -1,0 +1,195 @@
+@startuml
+
+' Enumerations
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  INACTIVE
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum ChatStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ConferenceStatus {
+  PLANNED
+  ONGOING
+  COMPLETED
+}
+
+enum ChatType {
+  PUBLIC
+  PRIVATE
+  EMBEDDED
+}
+
+enum EventType {
+  LOGIN
+  MESSAGE_SENT
+  JOINED_CONFERENCE
+  BLOCKED_USER
+  STARTED_SCREENSHARE
+}
+
+' Classes
+
+class User {
+  - id: String
+  - email: String
+  - password: String
+  - fullName: String
+  - username: String
+  - phoneNumber: String
+  - registrationDate: Date
+  - status: UserStatus
+  - role: UserRole
+  + register()
+  + login()
+  + logout()
+  + updateProfile()
+  + changePassword()
+  + uploadAvatar()
+  + joinChat(chatId)
+  + joinConference(conferenceId)
+  + sendMessage(chatId, content)
+  + viewMessageHistory(chatId)
+  + getConferences()
+  + getChats()
+}
+
+class Administrator {
+  - id: String
+  - userId: String
+  - permissions: String[]
+  - assignedAt: Date
+  + blockUser(userId)
+  + unblockUser(userId)
+  + assignModerator(userId, entityId)
+  + deleteMessage(messageId)
+  + deleteChat(chatId)
+  + createConference(params)
+  + createChat(params)
+  + viewLogs()
+}
+
+class VideoConference {
+  - id: String
+  - title: String
+  - startTime: DateTime
+  - endTime: DateTime
+  - status: ConferenceStatus
+  - recordingAvailable: Boolean
+  - accessCode: String
+  + start()
+  + end()
+  + inviteUser(userId)
+  + enableRecording()
+  + disableRecording()
+  + enableScreenSharing()
+  + disableScreenSharing()
+  + getParticipants()
+  + getChat()
+}
+
+class Chat {
+  - id: String
+  - name: String
+  - type: ChatType
+  - createdAt: DateTime
+  - status: ChatStatus
+  + addParticipant(userId)
+  + removeParticipant(userId)
+  + sendMessage(userId, content)
+  + getMessages()
+  + archive()
+  + unarchive()
+  + rename(name)
+}
+
+class Message {
+  - id: String
+  - senderId: String
+  - chatId: String
+  - content: String
+  - timestamp: DateTime
+  - isEdited: Boolean
+  - isDeleted: Boolean
+  + edit(content)
+  + delete()
+  + getMetadata()
+  + markAsRead()
+  + attachFile(file)
+}
+
+class Profile {
+  - id: String
+  - userId: String
+  - settings: String
+  - messageHistoryEnabled: Boolean
+  - lastLogin: DateTime
+  + updateSettings(settings)
+  + viewHistory()
+  + changeAvatar(image)
+  + toggleMessageHistory(enabled)
+  + getLastLogin()
+}
+
+class MessageHistory {
+  - id: String
+  - messageId: String
+  - userId: String
+  - savedAt: DateTime
+  - isVisible: Boolean
+  + addMessage(messageId)
+  + getUserHistory(userId)
+  + hideMessage(messageId)
+  + clearHistory(chatId)
+}
+
+class LogEvent {
+  - id: String
+  - userId: String
+  - eventType: EventType
+  - timestamp: DateTime
+  - description: String
+  - ipAddress: String
+  + create(eventType, userId)
+  + getUserEvents(userId)
+  + getByType(type)
+  + getByDateRange(start, end)
+  + delete(eventId)
+}
+
+class ScreenSharing {
+  - id: String
+  - conferenceId: String
+  - presenterId: String
+  - startTime: DateTime
+  - endTime: DateTime
+  - isActive: Boolean
+  + start(conferenceId, presenterId)
+  + stop()
+  + isActive()
+  + getDuration()
+  + changePresenter(newPresenterId)
+}
+
+' Relationships
+User --> Profile : owns
+User --> Message : sends
+User --> Chat : joins
+User --> VideoConference : participates in
+User --> LogEvent : creates
+Administrator --> User : extends
+Chat --> Message : contains
+Chat --> MessageHistory : logs
+VideoConference --> Chat : includes
+VideoConference --> ScreenSharing : has
+
+@enduml
